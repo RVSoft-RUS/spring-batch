@@ -1,53 +1,49 @@
 package ru.rvsoft.springbatch;
 
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.JobParametersInvalidException;
+import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
+import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
+import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
 import ru.rvsoft.springbatch.model.Person;
 
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
+
+import static java.lang.String.format;
 
 @SpringBootApplication
-public class SpringBatchApplication {
+public class SpringBatchApplication implements CommandLineRunner {
 
     @Autowired
-    JdbcTemplate jdbcTemplate;
+    private JobLauncher jobLauncher;
 
-    public static void main(String[] args) {
-        System.out.println("start");
-        ApplicationContext ctx = SpringApplication.run(SpringBatchApplication.class, args);
-        System.out.println("stop");
+    @Autowired
+    private Job job;
 
-//        SpringApplication.exit(ctx, () -> 9);
-
-//        JobLauncher jobLauncher = (JobLauncher) ctx.getBean("jobLauncher");
-//        Job job = (Job) ctx.getBean("personToUpperJob");
-//        JobExecution execution = jobLauncher.run(job, new JobParameters());
-//
-//        System.out.println(execution.getStatus());
-//
-//        List<Person> results = ctx.getBean(JdbcTemplate.class).query("SELECT first_name, last_name FROM people", new RowMapper<Person>() {
-//            @Override
-//            public Person mapRow(ResultSet rs, int row) throws SQLException {
-//                return new Person(rs.getString(1), rs.getString(2));
-//            }
-//        });
-//
-//        for (Person person : results) {
-//            System.out.println("Found <" + person + "> in the database.");
-//        }
+    private static String rs() {
+        return null;
     }
 
-    public void run(String[] args) {
-        List<Person> personList =
-                jdbcTemplate.query("select first_name, last_name from people",
-                        (rs, row) -> new Person(rs.getString("first_name"), rs.getString("last_name")));
+    public static void main(String[] args) {
+//⭐️
+        ApplicationContext ctx = SpringApplication.run(SpringBatchApplication.class, args);
+    }
 
-        for (Person p: personList) {
-            System.out.println(p);
-        }
-
+    @Override
+    public void run(String[] args) throws JobInstanceAlreadyCompleteException, JobExecutionAlreadyRunningException, JobParametersInvalidException, JobRestartException {
+        JobParametersBuilder jobParametersBuilder = new JobParametersBuilder();
+        jobParametersBuilder.addString("file.input", "sample-data.csv");
+        jobParametersBuilder.addString("file.output", "output.json");
+        jobParametersBuilder.addString("trial", "1");
+        this.jobLauncher.run(job, jobParametersBuilder.toJobParameters());
     }
 }
